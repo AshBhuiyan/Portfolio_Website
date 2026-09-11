@@ -40,7 +40,7 @@ export default function ResumePage() {
             directly.
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-3">
-            <Button href="/resume.pdf" download size="lg">
+            <Button href="/resume.pdf" download="Ash_Bhuiyan_Resume.pdf" size="lg">
               <Download className="h-4 w-4" />
               Download Resume
             </Button>
