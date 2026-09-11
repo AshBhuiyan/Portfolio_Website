@@ -28,7 +28,7 @@ export const siteConfig = {
   /** Compact label for Navbar at narrower breakpoints. */
   roleShort: "Data & Systems Analysis",
   location: "Ames, IA",
-  email: "bhuiyan.ashfaque@gmail.com",
+  email: "m.ashfaque.bhuiyan@gmail.com",
   linkedin: "https://www.linkedin.com/in/ashfaque-bhuiyan/",
   github: "https://github.com/AshBhuiyan",
   tagline: "Built with care, clarity, and curiosity.",
