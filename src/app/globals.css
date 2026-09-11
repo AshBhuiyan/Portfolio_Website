@@ -1,0 +1,350 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+  Theme tokens as RGB channel triplets ("R G B") so Tailwind alpha modifiers
+  work (e.g. text-foreground/60). Light is the default in :root; .dark holds
+  the dark overrides. next-themes toggles the `dark` class on <html>.
+*/
+:root {
+  color-scheme: light;
+
+  --background: 241 244 248; /* slate-tinted page canvas */
+  --surface: 255 255 255; /* opaque white cards */
+  --foreground: 15 23 42; /* slate-900 */
+
+  --border: 214 222 231; /* real structural border */
+  --border-strong: 190 201 213; /* hover / emphasis border */
+  --border-alpha: 1;
+  --border-strong-alpha: 1;
+
+  --surface-alpha: 1; /* cards are opaque in light */
+
+  --overlay: 15 23 42; /* tints ONLY — never borders */
+
+  --brand: 15 118 110; /* teal-700 — 5.47:1 on white */
+  --brand2: 29 78 216; /* blue-700 */
+  --brand3: 109 40 217; /* violet-700 */
+
+  --glass-fill: 255 255 255;
+  --glass-alpha: 0.85;
+  --glass-brd: 214 222 231;
+  --glass-brd-alpha: 1;
+
+  --blob-alpha: 0; /* pastel wash OFF in light mode */
+}
+
+.dark {
+  color-scheme: dark;
+
+  --background: 5 7 13;
+  --surface: 12 17 29;
+  --foreground: 232 237 245;
+
+  --border: 255 255 255;
+  --border-strong: 255 255 255;
+  --border-alpha: 0.08;
+  --border-strong-alpha: 0.2;
+
+  --surface-alpha: 0.7; /* preserves current dark translucency */
+
+  --overlay: 255 255 255;
+
+  --brand: 94 234 212;
+  --brand2: 96 165 250;
+  --brand3: 167 139 250;
+
+  --glass-fill: 255 255 255;
+  --glass-alpha: 0.045;
+  --glass-brd: 255 255 255;
+  --glass-brd-alpha: 0.08;
+
+  --blob-alpha: 0.05; /* atmospheric gradients stay in dark */
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: rgb(var(--background));
+    color: rgb(var(--foreground));
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Soft, colorful pastel gradient blobs behind everything — happy & premium
+     in light mode, subtle ambiance in dark mode. */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    animation: blob-drift 32s ease-in-out infinite;
+    background:
+      radial-gradient(
+        42% 38% at 10% 6%,
+        rgb(var(--brand) / var(--blob-alpha)),
+        transparent 70%
+      ),
+      radial-gradient(
+        40% 34% at 90% 10%,
+        rgb(var(--brand2) / var(--blob-alpha)),
+        transparent 70%
+      ),
+      radial-gradient(
+        46% 42% at 84% 88%,
+        rgb(var(--brand3) / var(--blob-alpha)),
+        transparent 72%
+      ),
+      radial-gradient(
+        38% 34% at 8% 92%,
+        rgb(var(--brand) / calc(var(--blob-alpha) * 0.8)),
+        transparent 70%
+      );
+  }
+
+  /*
+    Theme morph only — applied temporarily by ThemeToggle (~300ms).
+    Avoids a permanent body * transition that slows hover and theme toggles.
+  */
+  html.theme-transition,
+  html.theme-transition * {
+    transition-property: background-color, border-color, color, fill, stroke;
+    transition-duration: 300ms;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Visible keyboard focus states for accessibility */
+  :focus-visible {
+    outline: 2px solid rgb(var(--brand));
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
+
+  ::selection {
+    background-color: rgb(var(--brand) / 0.25);
+    color: rgb(var(--foreground));
+  }
+}
+
+@layer components {
+  /* Subtle text gradient used for emphasis on key headings */
+  .text-gradient {
+    @apply bg-gradient-to-br from-foreground via-brand to-brand2 bg-clip-text text-transparent;
+  }
+
+  /* Frosted glass surface: translucent white on light, faint white on dark. */
+  .glass {
+    background: rgb(var(--glass-fill) / var(--glass-alpha));
+    border: 1px solid rgb(var(--glass-brd) / var(--glass-brd-alpha));
+    -webkit-backdrop-filter: blur(16px);
+    backdrop-filter: blur(16px);
+  }
+
+  /* Soft radial glow behind hero / accents.
+     Light: teal + blue only (no lavender / pink wash).
+     Dark: keep the fuller atmospheric treatment including violet. */
+  .glow-radial {
+    background:
+      radial-gradient(
+        55% 55% at 28% 28%,
+        rgb(var(--brand) / 0.08) 0%,
+        transparent 70%
+      ),
+      radial-gradient(
+        50% 50% at 78% 42%,
+        rgb(var(--brand2) / 0.06) 0%,
+        transparent 72%
+      );
+  }
+
+  .dark .glow-radial {
+    background:
+      radial-gradient(
+        55% 55% at 30% 30%,
+        rgb(var(--brand) / 0.14) 0%,
+        transparent 70%
+      ),
+      radial-gradient(
+        55% 55% at 75% 45%,
+        rgb(var(--brand2) / 0.12) 0%,
+        transparent 72%
+      ),
+      radial-gradient(
+        50% 50% at 60% 80%,
+        rgb(var(--brand3) / 0.1) 0%,
+        transparent 72%
+      );
+  }
+}
+
+/*
+  Loading-screen tracing outline: a thin teal→blue "comet" that travels around
+  the AB monogram. Premium and minimal — not a generic spinner. The center is
+  masked by a background-colored circle in the component, leaving only the line.
+*/
+.intro-ring {
+  background: conic-gradient(
+    from 0deg,
+    transparent 0%,
+    transparent 48%,
+    rgb(var(--brand3)) 64%,
+    rgb(var(--brand2)) 80%,
+    rgb(var(--brand)) 92%,
+    transparent 100%
+  );
+  animation: intro-spin 1.2s linear infinite;
+}
+
+@keyframes intro-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* -------------------------------------------------------------------------
+   Ambient motion primitives (CSS, transform/opacity only — performant)
+   ------------------------------------------------------------------------- */
+
+/* Slow drifting hero particles — organic multi-stop path */
+@keyframes drift {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 0.2;
+  }
+  25% {
+    transform: translate3d(8px, -12px, 0) scale(1.12);
+    opacity: 0.5;
+  }
+  50% {
+    transform: translate3d(14px, -20px, 0) scale(1);
+    opacity: 0.65;
+  }
+  75% {
+    transform: translate3d(5px, -8px, 0) scale(0.92);
+    opacity: 0.35;
+  }
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 0.2;
+  }
+}
+.particle {
+  animation: drift var(--p-duration, 9s) ease-in-out infinite;
+  animation-delay: var(--p-delay, 0s);
+}
+
+/* Ambient background blob drift (very subtle) */
+@keyframes blob-drift {
+  0%,
+  100% {
+    transform: scale(1) translate3d(0, 0, 0);
+  }
+  33% {
+    transform: scale(1.03) translate3d(1.5%, -1%, 0);
+  }
+  66% {
+    transform: scale(0.98) translate3d(-1%, 1.5%, 0);
+  }
+}
+
+/* Light sweep across glass panels */
+@keyframes panel-sweep {
+  0% {
+    transform: translateX(-130%) skewX(-18deg);
+    opacity: 0;
+  }
+  18% {
+    opacity: 0.55;
+  }
+  45% {
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(230%) skewX(-18deg);
+    opacity: 0;
+  }
+}
+.panel-sweep {
+  animation: panel-sweep 5.5s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
+
+/* Soft glow pulse */
+@keyframes glow-pulse {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 0.85;
+  }
+}
+.glow-pulse {
+  animation: glow-pulse 4.2s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
+
+/* Subtle idle waveform bar motion (amplified on hover via group) */
+@keyframes wave-idle {
+  0%,
+  100% {
+    transform: scaleY(0.82);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}
+.wave-bar {
+  transform-origin: bottom;
+  animation: wave-idle 2.6s ease-in-out infinite;
+  animation-delay: var(--bar-delay, 0s);
+}
+.group:hover .wave-bar {
+  animation-duration: 1.05s;
+}
+
+/* Pause CSS loops when the tab is hidden or a subtree opts out */
+html[data-anim="off"] .particle,
+html[data-anim="off"] .panel-sweep,
+html[data-anim="off"] .glow-pulse,
+html[data-anim="off"] .wave-bar,
+html[data-anim="off"] .intro-ring,
+html[data-anim="off"] body::before,
+.motion-paused .particle,
+.motion-paused .panel-sweep,
+.motion-paused .glow-pulse,
+.motion-paused .wave-bar {
+  animation-play-state: paused !important;
+}
+
+/* Respect users who prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Refined, low-contrast scrollbar that follows the theme */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: rgb(var(--background));
+}
+::-webkit-scrollbar-thumb {
+  background: rgb(var(--overlay) / 0.18);
+  border-radius: 999px;
+  border: 2px solid rgb(var(--background));
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgb(var(--overlay) / 0.28);
+}
